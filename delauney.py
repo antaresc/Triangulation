@@ -10,6 +10,24 @@ Antares Chen
 2016-1-3
 """
 
+import numpy as np
+
+def is_incircle(p1, p2, p3, d):
+    """Returns if the point d is within the circumcircle defined by the points
+    p1, p2, p3.
+
+    The proof for this test is of great interest. The construction essentially
+    shows that p1, p2, p3, and d when projected onto a standard parabolid
+    x^2 + y^2, are coplanar. Refer to the original publication for full details.
+    """
+    test = np.array([[p1[0], p1[1], p1[0] ** 2 + p1[1] ** 2, 1],
+                        [p2[0], p2[1], p2[0] ** 2 + p2[1] ** 2, 1],
+                        [p3[0], p3[1], p3[0] ** 2 + p3[1] ** 2, 1],
+                        [d[0], d[1], d[0] ** 2 + d[1] ** 2, 1]
+                    ])
+    return np.linalg.det(test) > 0
+
+
 class QuadEdge:
     """A data structure that allows for fast planar subdivision. Holds three
     fields.
@@ -76,6 +94,11 @@ class QuadEdge:
         splice(result, q1.left_next)
         splice(result.sym, q2)
         return result
+
+    def disconnect(q):
+        """Disconnects q from the entire quad edge structure."""
+        splice(e, e.orig_prev)
+        splice(e.sym, e.sym.orig_prev)
 
     def swap(q):
         """Rotates Q counterclockwise given that Q is within an enclosing
