@@ -30,4 +30,3 @@ def quick_select(points, compare):
         else:
             return pivot
     return select(points, len(points) // 2)
-\
