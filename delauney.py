@@ -12,13 +12,34 @@ Antares Chen
 
 import numpy as np
 
+def triangulate_divide_conquer():
+    """Implements the divide and conquer schema proposed by Guibas-Stolfi."""
+    pass
+
+def triangulate_online():
+    """Implements the iterative schema proposed by Guibas-Stolfi."""
+    pass
+
+def right_of(point, quad_edge):
+    """Returns if point is to the right of the given quad edge."""
+    pass
+
+def left_of(point, quad_edge):
+    """Returns if point is to the left of the given quad edge."""
+    pass
+
+def valid(quad_edge):
+    """Returns if the quad edge is above the basel chord."""
+    pass
+
 def is_incircle(p1, p2, p3, d):
     """Returns if the point d is within the circumcircle defined by the points
     p1, p2, p3.
 
     The proof for this test is of great interest. The construction essentially
     shows that p1, p2, p3, and d when projected onto a standard parabolid
-    x^2 + y^2, are coplanar. Refer to the original publication for full details.
+    x^2 + y^2, are coplanar if d is within the circumcircle struck by p1, p2,
+    and p3. Refer to the original publication for full details.
     """
     test = np.array([[p1[0], p1[1], p1[0] ** 2 + p1[1] ** 2, 1],
                         [p2[0], p2[1], p2[0] ** 2 + p2[1] ** 2, 1],
