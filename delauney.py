@@ -22,21 +22,29 @@ def triangulate_online():
 
 def right_of(point, quad_edge):
     """Returns if point is to the right of the given quad edge."""
-    pass
+    return ccw_circle(point, quad_edge.dest, quad_edge.orig)
 
 def left_of(point, quad_edge):
     """Returns if point is to the left of the given quad edge."""
-    pass
+    return ccw_circle(point, quad_edge.orig, quad_edge.dest)
 
-def valid(quad_edge):
-    """Returns if the quad edge is above the basel chord."""
-    pass
+def valid(quad_edge, basel):
+    """Returns if the quad edge is above the basel cross edge."""
+    return right_of(quad_edge.dest, basel)
+
+def ccw_circle(p1, p2, p3):
+    """Returns if p1, p2, and p3, form a counterclockwise oriented circle."""
+    test = np.array([[p1[0], p1[1], 1],
+                        [p2[0], p2[1], 1],
+                        [p3[0], p3[1], 1],
+                    ])
+    return np.linalg.det(test) > 0
 
 def is_incircle(p1, p2, p3, d):
     """Returns if the point d is within the circumcircle defined by the points
     p1, p2, p3.
 
-    The proof for this test is of great interest. The construction essentially
+    The proof for this test is very interesting. The construction essentially
     shows that p1, p2, p3, and d when projected onto a standard parabolid
     x^2 + y^2, are coplanar if d is within the circumcircle struck by p1, p2,
     and p3. Refer to the original publication for full details.
