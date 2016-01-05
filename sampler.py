@@ -63,9 +63,7 @@ def dist(x0, y0, x1, y1):
 
 def in_range(point, length, width):
     """Returns if the point is within range of length and width."""
-    return point[0] >= 0 and point[0] <= length
-            and point[1] >= 0
-            and point[1] <= width
+    return point[0] >= 0 and point[0] <= length and point[1] >= 0 and point[1] <= width
 
 
 def in_neighborhood(point, grid, min_dist):

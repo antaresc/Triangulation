@@ -26,7 +26,7 @@ def divide_conquer(points):
         if is_ccw_circle(points[0], points[1], points[2]):
             c = QuadEdge.connect(b, a)
             return a, b.sym
-        elif is_ccw_circle(points[0], points[2], points[1])
+        elif is_ccw_circle(points[0], points[2], points[1]):
             c = QuadEdge.connect(b, a)
             return c.sym, c
         else:
@@ -37,16 +37,16 @@ def divide_conquer(points):
         rdo, rdi = divide_conquer(points[len(points) // 2 :])
 
         # Compute the lowest common tangent
-        if left_of(rdi.orig, ldi):
+        if left_of(rdi._orig, ldi):
             ldi = ldi.left_next
-        else if right_of(ldi.orig, rdi):
+        elif right_of(ldi._orig, rdi):
             rdi = rdi.right_prev
 
         # Create first cross edge.
         basel = QuadEdge.connect(rdi.sym, ldi)
-        if ldi.orig == ldo.orig:
+        if ldi._orig == ldo._orig:
             ldo = basel.sym
-        if rdi.orig == rdo.orig:
+        if rdi._orig == rdo._orig:
             rdo = basel
 
         # Left and right candidate quad edges
@@ -54,17 +54,14 @@ def divide_conquer(points):
         rcand = basel.orig_prev
 
         # Merge loop
-        while valid(lcand) or valid(rcand):
-            if valid(lcand):
-                while is_incircle(basel.dest, basel.orig, lcand.dest,
-                                    lcand.orig_next.dest):
+        while is_valid(lcand, basel) or is_valid(rcand, basel):
+            if is_valid(lcand, basel):
+                while is_incircle(basel._dest, basel._orig, lcand._dest, lcand.orig_next._dest):
                     lcand = replace(lcand, lcand.orig_next)
-            if valid(rcand):
-                while is_incircle(basel.dest, basel.orig, rcand.dest,
-                                    rcand.orig_prev.dest):
+            if is_valid(rcand, basel):
+                while is_incircle(basel._dest, basel._orig, rcand._dest, rcand.orig_prev._dest):
                     rcand = replace(rcand, rcand.orig_prev)
-            if not valid(lcand) or (valid(rcand) and is_incircle(lcand.dest,
-                                    lcand.orig, rcand.orig, rcand.dest)):
+            if not is_valid(lcand, basel) or (is_valid(rcand, basel) and is_incircle(lcand._dest, lcand._orig, rcand._orig, rcand._dest)):
                 basel = QuadEdge.connect(rcand, basel.sym)
             else:
                 basel = QuadEdge.connect(basel.sym, lcand.sym)
@@ -94,15 +91,15 @@ def preprocess(points):
 
 def right_of(point, quad_edge):
     """Returns if point is to the right of the given quad edge."""
-    return is_ccw_circle(point, quad_edge.dest, quad_edge.orig)
+    return is_ccw_circle(point, quad_edge._dest, quad_edge._orig)
 
 def left_of(point, quad_edge):
     """Returns if point is to the left of the given quad edge."""
-    return is_ccw_circle(point, quad_edge.orig, quad_edge.dest)
+    return is_ccw_circle(point, quad_edge._orig, quad_edge._dest)
 
-def valid(quad_edge, basel):
+def is_valid(quad_edge, basel):
     """Returns if the quad edge is above the basel cross edge."""
-    return right_of(quad_edge.dest, basel)
+    return right_of(quad_edge._dest, basel)
 
 def is_ccw_circle(p1, p2, p3):
     """Returns if p1, p2, and p3, form a counterclockwise oriented circle."""
@@ -144,9 +141,9 @@ class QuadEdge:
 
     def __init__(self, orig, next_edge, rot):
         """A basic constructor taking in orig, next_edge, and rot."""
-        _orig = orig
-        _next = next_edge
-        _rot = rot
+        self._orig = orig
+        self._next = next_edge
+        self._rot = rot
 
     def make_edge(orig, dest):
         """Creates the edge between orig and dest. Call this method instead of
@@ -191,15 +188,15 @@ class QuadEdge:
         """Returns a new quad edge connecting the destination of q1 to the
         origin of q2 maintaining that all three quad edges have the same face.
         """
-        result = make_edge(q1.get_dest(), q2.get_orig())
-        splice(result, q1.left_next)
-        splice(result.sym, q2)
+        result = QuadEdge.make_edge(q1._dest, q2.get_orig())
+        QuadEdge.splice(result, q1.left_next)
+        QuadEdge.splice(result.sym, q2)
         return result
 
     def disconnect(q):
         """Disconnects q from the entire quad edge structure."""
-        splice(e, e.orig_prev)
-        splice(e.sym, e.sym.orig_prev)
+        QuadEdge.splice(e, e.orig_prev)
+        QuadEdge.splice(e.sym, e.sym.orig_prev)
 
     def swap(q):
         """Rotates Q counterclockwise given that Q is within an enclosing
@@ -208,13 +205,13 @@ class QuadEdge:
         prev = q.orig_prev;
         sPrev = q.sym.orig_prev;
 
-        splice(q, prev);
-        splice(q.sym, sPrev);
-        splice(q, prev.left_next);
-        splice(q.sym, sPrev.left_next);
+        QuadEdge.splice(q, prev);
+        QuadEdge.splice(q.sym, sPrev);
+        QuadEdge.splice(q, prev.left_next);
+        QuadEdge.splice(q.sym, sPrev.left_next);
 
-        q.set_orig(prev.get_dest());
-        q.set_dest(sPrev.get_dest());
+        q.set_orig(prev._dest);
+        q.set_dest(sPrev._dest);
 
     def get_data(self):
         """Returns the data associated with this quad edge."""
@@ -223,10 +220,6 @@ class QuadEdge:
     def get_orig(self):
         """Returns the origin of this quad edge."""
         return self._orig
-
-    def get_dest(self):
-        """Returns the destination of this quad edge."""
-        return self.sym.get_orig()
 
     def set_data(self, data):
         """Sets the _data field to data."""
@@ -240,17 +233,22 @@ class QuadEdge:
         """Sets the destination of this quad edge to dest."""
         self.sym.set_orig(dest)
 
-    def set_next(self, next):
+    def set_next(self, next_edge):
         """Sets the next quad edge to next."""
-        self._next = next
+        self._next = next_edge
+
+    @property
+    def _dest(self):
+        """Returns the destination of this quad edge."""
+        return self.sym.get_orig()
 
     @property
     def sym(self):
         """Returns the quad edge with orig and dest reversed."""
-        return _rot._rot
+        return self._rot._rot
 
     @property
-    def rot_inv(self):
+    def rot_inverse(self):
         """Returns the dual of this quad edge flipped."""
         return self._rot.sym
 
