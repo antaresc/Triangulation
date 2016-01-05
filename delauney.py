@@ -48,26 +48,24 @@ def divide_conquer(points):
             ldo = basel.sym
         if rdi._orig == rdo._orig:
             rdo = basel
+        merge(basel.sym.orig_next, basel.orig_prev)
+        return ldo, rdo
 
-        # Left and right candidate quad edges
+def merge(lcand, rcand):
+    """Merges the two half triangulations into one whole triangulation."""
+    while is_valid(lcand, basel) or is_valid(rcand, basel):
+        if is_valid(lcand, basel):
+            while is_incircle(basel._dest, basel._orig, lcand._dest, lcand.orig_next._dest):
+                lcand = replace(lcand, lcand.orig_next)
+        if is_valid(rcand, basel):
+            while is_incircle(basel._dest, basel._orig, rcand._dest, rcand.orig_prev._dest):
+                rcand = replace(rcand, rcand.orig_prev)
+        if not is_valid(lcand, basel) or (is_valid(rcand, basel) and is_incircle(lcand._dest, lcand._orig, rcand._orig, rcand._dest)):
+            basel = QuadEdge.connect(rcand, basel.sym)
+        else:
+            basel = QuadEdge.connect(basel.sym, lcand.sym)
         lcand = basel.sym.orig_next
         rcand = basel.orig_prev
-
-        # Merge loop
-        while is_valid(lcand, basel) or is_valid(rcand, basel):
-            if is_valid(lcand, basel):
-                while is_incircle(basel._dest, basel._orig, lcand._dest, lcand.orig_next._dest):
-                    lcand = replace(lcand, lcand.orig_next)
-            if is_valid(rcand, basel):
-                while is_incircle(basel._dest, basel._orig, rcand._dest, rcand.orig_prev._dest):
-                    rcand = replace(rcand, rcand.orig_prev)
-            if not is_valid(lcand, basel) or (is_valid(rcand, basel) and is_incircle(lcand._dest, lcand._orig, rcand._orig, rcand._dest)):
-                basel = QuadEdge.connect(rcand, basel.sym)
-            else:
-                basel = QuadEdge.connect(basel.sym, lcand.sym)
-            lcand = basel.sym.orig_next
-            rcand = basel.orig_prev
-        return ldo, rdo
 
 def online(points):
     """Implements the iterative schema proposed by Guibas-Stolfi."""
