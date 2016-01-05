@@ -33,7 +33,7 @@ def quick_select(points, compare):
             return pivot
     return select(points, len(points) // 2)
 
-def plot_points(points, length, width):
+def draw_points(points, length, width):
     """Plots the list of points on a canvas sized length x width."""
     image = Image.new('RGB', (length, width))
     draw = ImageDraw.Draw(image)

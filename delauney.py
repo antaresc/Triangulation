@@ -16,22 +16,31 @@ def divide_conquer(points):
     """Implements the divide and conquer schema proposed by Guibas-Stolfi.
     Requires that the points be preprocessed.
     """
+    print("DIVIDING")
     if len(points) == 2:
+        print("Len: 2")
         a = QuadEdge.make_edge(points[0], points[1])
+        print("||  Creating Edge: " + str(a))
         return a, a.sym
     elif len(points) == 3:
+        print("Len: 3")
         a = QuadEdge.make_edge(points[0], points[1])
         b = QuadEdge.make_edge(points[1], points[2])
+        print("||  Creating Edge: " + str(a))
+        print("||  Creating Edge: " + str(b))
         QuadEdge.splice(a.sym, b)
         if is_ccw_circle(points[0], points[1], points[2]):
             c = QuadEdge.connect(b, a)
+            print("||  Creating Edge: " + str(c))
             return a, b.sym
         elif is_ccw_circle(points[0], points[2], points[1]):
             c = QuadEdge.connect(b, a)
+            print("||  Creating Edge: " + str(c))
             return c.sym, c
         else:
             return a, b.sym
     else:
+        print("Len: >= 4")
         # Recursive call
         ldo, ldi = divide_conquer(points[: len(points) // 2])
         rdo, rdi = divide_conquer(points[len(points) // 2 :])
@@ -48,24 +57,36 @@ def divide_conquer(points):
             ldo = basel.sym
         if rdi._orig == rdo._orig:
             rdo = basel
-        merge(basel.sym.orig_next, basel.orig_prev)
+        merge(basel.sym.orig_next, basel.orig_prev, basel)
         return ldo, rdo
 
-def merge(lcand, rcand):
+def merge(lcand, rcand, basel):
     """Merges the two half triangulations into one whole triangulation."""
+    print("CONQUERING")
     while is_valid(lcand, basel) or is_valid(rcand, basel):
+        print("||  rcand: " + str(rcand))
+        print("||  lcand: " + str(lcand))
+        print("||  basel: " + str(basel))
         if is_valid(lcand, basel):
             while is_incircle(basel._dest, basel._orig, lcand._dest, lcand.orig_next._dest):
+                print("||  ||  lcand is valid!")
                 lcand = replace(lcand, lcand.orig_next)
         if is_valid(rcand, basel):
             while is_incircle(basel._dest, basel._orig, rcand._dest, rcand.orig_prev._dest):
+                print("||  ||  rcand is valid!")
                 rcand = replace(rcand, rcand.orig_prev)
+                print("||  ||  rcand: " + str(rcand))
         if not is_valid(lcand, basel) or ((is_valid(rcand, basel) and is_incircle(lcand._dest, lcand._orig, rcand._orig, rcand._dest))):
             basel = QuadEdge.connect(rcand, basel.sym)
         else:
             basel = QuadEdge.connect(basel.sym, lcand.sym)
         lcand = basel.sym.orig_next
         rcand = basel.orig_prev
+
+# IF Valid[rcand] THEN
+# WHILE InCircle
+# [basel.Dest, basel.Org, rcand.Dest, rcand.Oprev.Dest]
+# DO t + rcand.Oprev; DeleteEdge[rcand]; rcand c t OD
 
 def online(points):
     """Implements the iterative schema proposed by Guibas-Stolfi."""
@@ -143,6 +164,10 @@ class QuadEdge:
         self._next = next_edge
         self._rot = rot
 
+    def __str__(self):
+        """A string representation of QuadEdge."""
+        return "[{} - {}]".format(self._orig, self._dest)
+
     def make_edge(orig, dest):
         """Creates the edge between orig and dest. Call this method instead of
         the constructor.
@@ -191,25 +216,25 @@ class QuadEdge:
         QuadEdge.splice(result.sym, q2)
         return result
 
-    def disconnect(q):
-        """Disconnects q from the entire quad edge structure."""
-        QuadEdge.splice(e, e.orig_prev)
-        QuadEdge.splice(e.sym, e.sym.orig_prev)
+    def disconnect(quad_edge):
+        """Disconnects quad_edge from the entire quad edge structure."""
+        QuadEdge.splice(quad_edge, quad_edge.orig_prev)
+        QuadEdge.splice(quad_edge.sym, quad_edge.sym.orig_prev)
 
-    def swap(q):
+    def swap(quad_edge):
         """Rotates Q counterclockwise given that Q is within an enclosing
         quadrilateral.
         """
-        prev = q.orig_prev;
-        sPrev = q.sym.orig_prev;
+        prev = quad_edge.orig_prev;
+        sPrev = quad_edge.sym.orig_prev;
 
-        QuadEdge.splice(q, prev);
-        QuadEdge.splice(q.sym, sPrev);
-        QuadEdge.splice(q, prev.left_next);
-        QuadEdge.splice(q.sym, sPrev.left_next);
+        QuadEdge.splice(quad_edge, prev);
+        QuadEdge.splice(quad_edge.sym, sPrev);
+        QuadEdge.splice(quad_edge, prev.left_next);
+        QuadEdge.splice(quad_edge.sym, sPrev.left_next);
 
-        q.set_orig(prev._dest);
-        q.set_dest(sPrev._dest);
+        quad_edge.set_orig(prev._dest);
+        quad_edge.set_dest(sPrev._dest);
 
     def get_data(self):
         """Returns the data associated with this quad edge."""
