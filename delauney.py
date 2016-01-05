@@ -12,20 +12,79 @@ Antares Chen
 
 import numpy as np
 
-def triangulate_divide_conquer():
-    """Implements the divide and conquer schema proposed by Guibas-Stolfi."""
-    pass
+def divide_conquer(points):
+    """Implements the divide and conquer schema proposed by Guibas-Stolfi.
+    Requires that the points be preprocessed.
+    """
+    if len(points) == 2:
+        a = QuadEdge.make_edge(points[0], points[1])
+        return a, a.sym
+    elif len(points) == 3:
+        a = QuadEdge.make_edge(points[0], points[1])
+        b = QuadEdge.make_edge(points[1], points[2])
+        QuadEdge.splice(a.sym, b)
+        if is_ccw_circle(points[0], points[1], points[2]):
+            c = QuadEdge.connect(b, a)
+            return a, b.sym
+        elif is_ccw_circle(points[0], points[2], points[1])
+            c = QuadEdge.connect(b, a)
+            return c.sym, c
+        else:
+            return a, b.sym
+    else:
+        # Recursive call
+        ldo, ldi = divide_conquer(points[: len(points) // 2])
+        rdo, rdi = divide_conquer(points[len(points) // 2 :])
 
-def triangulate_online():
+        # Compute the lowest common tangent
+        if left_of(rdi.orig, ldi):
+            ldi = ldi.left_next
+        else if right_of(ldi.orig, rdi):
+            rdi = rdi.right_prev
+
+        # Create first cross edge.
+        basel = QuadEdge.connect(rdi.sym, ldi)
+        if ldi.orig == ldo.orig:
+            ldo = basel.sym
+        if rdi.orig == rdo.orig:
+            rdo = basel
+
+        # Left and right candidate quad edges
+        lcand = basel.sym.orig_next
+        rcand = basel.orig_prev
+
+        # Merge loop
+        while valid(lcand) or valid(rcand):
+            if valid(lcand):
+                while is_incircle(basel.dest, basel.orig, lcand.dest,
+                                    lcand.orig_next.dest):
+                    lcand = replace(lcand, lcand.orig_next)
+            if valid(rcand):
+                while is_incircle(basel.dest, basel.orig, rcand.dest,
+                                    rcand.orig_prev.dest):
+                    rcand = replace(rcand, rcand.orig_prev)
+            if not valid(lcand) or (valid(rcand) and is_incircle(lcand.dest,
+                                    lcand.orig, rcand.orig, rcand.dest)):
+                basel = QuadEdge.connect(rcand, basel.sym)
+            else:
+                basel = QuadEdge.connect(basel.sym, lcand.sym)
+            lcand = basel.sym.orig_next
+            rcand = basel.orig_prev
+        return ldo, rdo
+
+def online(points):
     """Implements the iterative schema proposed by Guibas-Stolfi."""
     pass
+
+def replace(q, temp):
+    """Disconencts q from the QuadEdge structure and returns temp."""
+    QuadEdge.disconnect(q)
+    return temp
 
 def preprocess(points):
     """Sorts points by y-value and then sorts by x-value. Because python's
     sorted is stable, it will maintain that after processing all values are
     x ascending and for duplicate x, they are y ascending.
-
-    Assuming that Python's sorted runs O(nlogn)
     """
     points = list(set(points))
     points = sorted(points, key = lambda pt : pt[1])
