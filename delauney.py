@@ -60,7 +60,7 @@ def merge(lcand, rcand):
         if is_valid(rcand, basel):
             while is_incircle(basel._dest, basel._orig, rcand._dest, rcand.orig_prev._dest):
                 rcand = replace(rcand, rcand.orig_prev)
-        if not is_valid(lcand, basel) or (is_valid(rcand, basel) and is_incircle(lcand._dest, lcand._orig, rcand._orig, rcand._dest)):
+        if not is_valid(lcand, basel) or ((is_valid(rcand, basel) and is_incircle(lcand._dest, lcand._orig, rcand._orig, rcand._dest))):
             basel = QuadEdge.connect(rcand, basel.sym)
         else:
             basel = QuadEdge.connect(basel.sym, lcand.sym)

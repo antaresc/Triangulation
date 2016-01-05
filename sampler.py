@@ -10,11 +10,12 @@ import math
 
 
 def poisson_sample(r, length, width, resample = 30):
-    """Returns a list of length size containing a set of randomly sampled points
-    in 2D euclidean space.
+    """Returns a list containing a set of randomly sampled points in 2D
+    euclidean space bounded by length and width. Points are at least r distance
+    apart
     """
-    min_dist = (int) (r / sqrt(2))
-    grid = [[-1] * length for i in range(width)]
+    min_dist = (int) (r / math.sqrt(2))
+    grid = [[-1] * (length + 1) for i in range(width + 1)]
 
     pt = random_point(0, length, 0, width)
     grid[pt[0]][pt[1]] = 0
@@ -23,10 +24,10 @@ def poisson_sample(r, length, width, resample = 30):
     active = [pt]
     result = [pt]
     while len(active) != 0:
-        pt = active[randint(0, len(active) - 1)]
+        pt = active.pop(randint(0, len(active) - 1))
         for i in range(resample):
             new_pt = random_point_around(pt[0], pt[1], r)
-            if in_range(new_pt, length, width) and not in_neighborhood():
+            if in_range(new_pt, length, width) and not in_neighborhood(new_pt, grid, r):
                 active.append(new_pt)
                 result.append(new_pt)
                 grid[new_pt[0]][new_pt[1]] = index
@@ -56,19 +57,19 @@ def random_point_around(x, y, r):
     return new_x, new_y
 
 
-def dist(x0, y0, x1, y1):
+def dist(p0, p1):
     """Returns the euclidean distance between (x0, y0) and (x1, y1)"""
-    return math.sqrt((x1 - x0) ** 2 + (y1 - y0) ** 2)
+    return math.sqrt((p1[0] - p0[0]) ** 2 + (p1[1] - p0[1]) ** 2)
 
 
 def in_range(point, length, width):
     """Returns if the point is within range of length and width."""
-    return point[0] >= 0 and point[0] <= length and point[1] >= 0 and point[1] <= width
+    return point[0] >= 0 and point[0] < length and point[1] >= 0 and point[1] < width
 
 
 def in_neighborhood(point, grid, min_dist):
     """Returns if any points are within min_dist of the given point in grid."""
-    length = len(grid(0))
+    length = len(grid[0])
     width = len(grid)
 
     for r in range(point[0] - min_dist, point[0] + min_dist + 1):
@@ -76,5 +77,5 @@ def in_neighborhood(point, grid, min_dist):
             pt = (r, c)
             if in_range(pt, length, width) and grid[r][c] != -1:
                  if dist(point, pt) <= min_dist:
-                     return true
-    return false
+                     return True
+    return False
