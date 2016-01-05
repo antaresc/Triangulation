@@ -21,10 +21,13 @@ def triangulate_online():
     pass
 
 def preprocess(points):
-    """Sorts points by y-value and then sorts by x-value. Because the python's
-    sorted is stable, it should maintain that all elements of points with the
-    same x-value after being processed should be sorted by y-value as well.
+    """Sorts points by y-value and then sorts by x-value. Because python's
+    sorted is stable, it will maintain that after processing all values are
+    x ascending and for duplicate x, they are y ascending.
+
+    Assuming that Python's sorted runs O(nlogn)
     """
+    points = list(set(points))
     points = sorted(points, key = lambda pt : pt[1])
     points = sorted(points, key = lambda pt : pt[0])
     return points
