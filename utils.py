@@ -5,8 +5,10 @@ Antares Chen
 """
 
 from random import randint, uniform
-import math
 from sampler import poisson_sample
+from PIL import Image, ImageDraw
+import math
+
 
 
 def quick_select(points, compare):
@@ -30,3 +32,11 @@ def quick_select(points, compare):
         else:
             return pivot
     return select(points, len(points) // 2)
+
+def plot_points(points, length, width):
+    """Plots the list of points on a canvas sized length x width."""
+    image = Image.new('RGB', (length, width))
+    draw = ImageDraw.Draw(image)
+    draw.rectangle([(0, 0), (length, width)], fill = 'white')
+    draw.point(points, fill = 'black')
+    image.show()
